@@ -6,6 +6,8 @@ import platform
 
 
 life = 1
+message = "Bienvenue dans le jeu de déplacement !"
+power = 6
 
 sprite = '◊'
 
@@ -18,9 +20,9 @@ carte[0, 0] = sprite
 
 print(carte)
 
-def deplacer_joueur(carte, direction):
+def move(carte, direction):
+    global power, life, message
     # Localisation actuelle du joueur
-    global life
     position = np.argwhere(carte == sprite)
     if position.size == 0:
         print("Le joueur n'est pas présent sur la carte.")
@@ -41,28 +43,45 @@ def deplacer_joueur(carte, direction):
         y = min(carte.shape[1] - 1, y + 1)
     # Place le joueur dans la nouvelle position
     if carte[x, y] == 1:
-        dice = random.randint(1, 6)
-        if dice <= 3:
+        win = combat(power)
+        if win:
+            loot()
+        else:
             life -= 1
+    else:
+        message = "Bienvenue dans le jeu de déplacement !"
     carte[x, y] = sprite
     return carte, x, y, life
 
+def loot():
+    global power, message
+    dice = random.randint(1, 10)
+    if dice >= 3:
+        power += 1
+        message += " Vous récupérez une meilleure arme. + 1 puissance !"
 
-
-def combat():
-    dice = random.randint(1, 6)
+def combat(power):
+    global message
+    dice = random.randint(1, power)
     if dice <= 3:
-        life = life - 1
+        win = False
+        message = "Perdu, gros tas."
+    else:
+        win = True
+        message = "Combat remporté !"
+    return win
 
 def jouer():
-    global carte, life
+    global carte, life, message, power
     while life >= 1:
 
         os.system('cls' if os.name == 'nt' else 'clear')
 
-        print("Bienvenue dans le jeu de déplacement !")
+        print(message)
         print("Utilisez Z pour monter, S pour descendre, Q pour aller à gauche, D pour aller à droite")
         print("Appuyez sur 'X' pour quitter le jeu.\n")
+        print(f"Puissance : {power}")
+        print(f"Vie : {life}")
         # Affiche la carte actuelle
         # print(carte)
         for ligne in carte :
@@ -78,10 +97,9 @@ def jouer():
 
         # Vérifie si la direction est valide
         if direction in ['Z', 'Q', 'S', 'D']:
-            carte, x, y, life = deplacer_joueur(carte, direction)
-            print(f"Position actuelle du joueur : x = {x}, y = {y}")
+            carte, x, y, life = move(carte, direction)
         else:
             print("Direction invalide. Utilisez Z, Q, S, D pour vous déplacer.")
-    print("perdu, gros tas.")
+    print(message)
 # Lancer le jeu
 jouer()
