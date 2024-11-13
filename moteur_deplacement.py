@@ -5,14 +5,14 @@ import random
 import platform
 
 
-life = 1
+health = 1
 message = "Bienvenue dans le jeu de déplacement !"
 power = 6
 
 sprite = '◊'
 
-def gen_map(lignes=6, colonnes=20, proba_ennemi=0.5):
-    return np.random.choice([0, 1], size=(lignes, colonnes), p=[proba_ennemi, 1 - proba_ennemi]).astype(object)
+def gen_map(lignes=6, colonnes=20, proba_ennemi=0.5, proba_sante=0.1):
+    return np.random.choice([0, '+', 1], size=(lignes, colonnes), p=[proba_ennemi, proba_sante, 1 - proba_ennemi - proba_sante]).astype(object)
 
 carte = gen_map()
 
@@ -21,7 +21,7 @@ carte[0, 0] = sprite
 print(carte)
 
 def move(carte, direction):
-    global power, life, message
+    global power, health, message
     # Localisation actuelle du joueur
     position = np.argwhere(carte == sprite)
     if position.size == 0:
@@ -47,11 +47,13 @@ def move(carte, direction):
         if win:
             loot()
         else:
-            life -= 1
+            health -= 1
+    elif carte[x, y] == '+':
+        health += 1
     else:
         message = "Bienvenue dans le jeu de déplacement !"
     carte[x, y] = sprite
-    return carte, x, y, life
+    return carte, x, y, health
 
 def loot():
     global power, message
@@ -72,8 +74,8 @@ def combat(power):
     return win
 
 def jouer():
-    global carte, life, message, power
-    while life >= 1:
+    global carte, health, message, power
+    while health >= 1:
 
         os.system('cls' if os.name == 'nt' else 'clear')
 
@@ -81,7 +83,7 @@ def jouer():
         print("Utilisez Z pour monter, S pour descendre, Q pour aller à gauche, D pour aller à droite")
         print("Appuyez sur 'X' pour quitter le jeu.\n")
         print(f"Puissance : {power}")
-        print(f"Vie : {life}")
+        print(f"Vie : {health}")
         # Affiche la carte actuelle
         # print(carte)
         for ligne in carte :
@@ -97,7 +99,7 @@ def jouer():
 
         # Vérifie si la direction est valide
         if direction in ['Z', 'Q', 'S', 'D']:
-            carte, x, y, life = move(carte, direction)
+            carte, x, y, health = move(carte, direction)
         else:
             print("Direction invalide. Utilisez Z, Q, S, D pour vous déplacer.")
     print(message)
