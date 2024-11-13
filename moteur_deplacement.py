@@ -1,17 +1,25 @@
 from rich.pretty import pprint
 import numpy as np
+import os
+import random
 
 
-carte = np.array([
-    [0, 0, 0],
-    [0, 9, 0],
-    [0, 0, 0]
-])
+vie = 1
+
+sprite = '◊'
+
+def gen_map(lignes=6, colonnes=20, proba_ennemi=0.5):
+    return np.random.choice([0, 1], size=(lignes, colonnes), p=[proba_ennemi, 1 - proba_ennemi]).astype(object)
+
+carte = gen_map()
+
+carte[0, 0] = sprite
+
 print(carte)
 
 def deplacer_joueur(carte, direction):
     # Localisation actuelle du joueur
-    position = np.argwhere(carte == 9)
+    position = np.argwhere(carte == sprite)
     if position.size == 0:
         print("Le joueur n'est pas présent sur la carte.")
         return carte
@@ -31,30 +39,21 @@ def deplacer_joueur(carte, direction):
         y = min(carte.shape[1] - 1, y + 1)
 
     # Place le joueur dans la nouvelle position
-    carte[x, y] = 9
+    carte[x, y] = sprite
     return carte, x, y
 
 def jouer():
-    print("Bienvenue dans le jeu de déplacement !")
-    print("Utilisez Z pour monter, S pour descendre, Q pour aller à gauche, D pour aller à droite")
-    print("Appuyez sur 'X' pour quitter le jeu.\n")
     global carte
     while True:
+        os.system('clear')
+
+        print("Bienvenue dans le jeu de déplacement !")
+        print("Utilisez Z pour monter, S pour descendre, Q pour aller à gauche, D pour aller à droite")
+        print("Appuyez sur 'X' pour quitter le jeu.\n")
         # Affiche la carte actuelle
-        print()
-        print()
-        print()
-        print()
-        print()
-        print()
-        print()
-        print()
-        print()
-        print()
-        print()
-        print()
-        print()
-        print(carte)
+        # print(carte)
+        for ligne in carte :
+            print(*ligne)
 
         # Demande la direction à l'utilisateur
         direction = input("Direction (Z/Q/S/D) : ").upper()
