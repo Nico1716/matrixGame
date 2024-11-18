@@ -8,6 +8,7 @@ import platform
 health = 1
 message = "C'est votre Baptême du Sang ! Tuez un " + "\x1b[1;31mBoss\x1b[0m" + " et devenez un vrai guerrier !"
 power = 6
+luck = 1
 
 hero = "\x1b[1;36m◊\x1b[0m" 
 enemy = 'ŏ'
@@ -39,10 +40,10 @@ carte[0, 0] = hero
 
 print(carte)
 
-def loot(luck=1):
+def loot(luck, chest=False):
     global power, message
     dice = random.randint(1, 11 - luck)
-    if dice <= 3:
+    if dice <= 3 or chest:
         bonus = 1 + random.randint(0, luck)
         power += bonus
         message += " Vous récupérez une meilleure arme. + " + f"{bonus} \x1b[1;33mpuissance\x1b[0m" + " !"
@@ -71,7 +72,7 @@ def boss_combat(power):
         return True
 
 def move(carte, direction):
-    global power, health, message, boss_killed, boss_position
+    global power, health, message, boss_killed, boss_position, luck
     position = np.argwhere(carte == hero)
     if position.size == 0:
         print("Le joueur n'est pas présent sur la carte.")
@@ -104,10 +105,10 @@ def move(carte, direction):
                 message = "Vous avez perdu toutes vos " + f"\x1b[1;35mvies\x1b[0m" + " ! Fin de la partie."
                 return carte, x, y, health
     elif carte[x, y] == health_char:
-        health += 1
+        health += (1 + luck)
         message = "Vous trouvez un bonus de santé ! +1 " + f"\x1b[1;35mvie\x1b[0m" + "."
     elif carte[x, y] == treasure_char:
-        power += 2
+        loot(luck, True)
         message = "Vous trouvez un coffre ! +2 " + f"\x1b[1;33mpuissance\x1b[0m" + "."
     elif carte[x, y] == exit_char:
         # Condition de victoire : avoir 15 de puissance et avoir tué le boss
@@ -143,7 +144,7 @@ def move(carte, direction):
     return carte, x, y, health
 
 def jouer():
-    global carte, health, message, power, boss_killed
+    global carte, health, message, power, boss_killed, luck
     while True:
         while health >= 1:
             os.system('cls' if os.name == 'nt' else 'clear')
@@ -184,6 +185,7 @@ def jouer():
             # Réinitialise le jeu
             health = 1
             power = 6
+            luck = 1
             boss_killed = False  # Réinitialiser la condition du boss tué
             message = "C'est votre Baptême du Sang ! Tuez un " + "\x1b[1;31mBoss\x1b[0m" + " et devenez un vrai " + "\x1b[1;36mHéros\x1b[0m" + " !"
             carte, boss_position = gen_map()
