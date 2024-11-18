@@ -4,6 +4,10 @@ import os
 import random
 import platform
 
+# map details
+lignes=6
+colonnes=20
+
 
 health = 1
 message = "C'est votre Baptême du Sang ! Tuez un " + "\x1b[1;31mBoss\x1b[0m" + " et devenez un vrai guerrier !"
@@ -18,6 +22,14 @@ exit_char = "\x1b[1;32m→\x1b[0m"
 treasure_char = "\x1b[1;33m�\x1b[0m"
 boss_killed = False  # Variable pour savoir si le boss a été tué
 
+def spawn_boss(x=0, y=0):
+    global carte, lignes, colonnes
+    boss_x, boss_y = random.randint(0, lignes - 1), random.randint(0, colonnes - 1)
+    while carte[boss_x, boss_y] == exit_char or carte[boss_x, boss_y] == hero:  # Assure que le boss ne soit pas sur une sortie
+        boss_x, boss_y = random.randint(0, lignes - 1), random.randint(0, colonnes - 1)
+    carte[boss_x, boss_y] = boss
+    return carte, (boss_x, boss_y)
+
 def gen_map(lignes=6, colonnes=20, proba_ennemi=0.5, proba_sante=0.01, proba_tresor=0.05):
     # On génère la carte avec des ennemis, des trésors, etc.
     carte = np.random.choice([' ', health_char, enemy, treasure_char], size=(lignes, colonnes), 
@@ -28,14 +40,13 @@ def gen_map(lignes=6, colonnes=20, proba_ennemi=0.5, proba_sante=0.01, proba_tre
     carte[0, colonnes - 1] = exit_char  # Sortie 2 (en haut à droite)
 
     # Ajout du boss sur la carte à une position aléatoire
-    boss_x, boss_y = random.randint(0, lignes - 1), random.randint(0, colonnes - 1)
-    while carte[boss_x, boss_y] == exit_char:  # Assure que le boss ne soit pas sur une sortie
-        boss_x, boss_y = random.randint(0, lignes - 1), random.randint(0, colonnes - 1)
-    carte[boss_x, boss_y] = boss
+    
 
-    return carte, (boss_x, boss_y)
+    return carte
 
-carte, boss_position = gen_map()
+carte = gen_map(lignes, colonnes)
+
+carte, boss_position = spawn_boss()
 carte[0, 0] = hero
 
 print(carte)
@@ -59,7 +70,7 @@ def combat(power):
         return True  # Défini que le combat est gagné
 
 def boss_combat(power):
-    global message, boss_killed
+    global message, boss_killed, luck
     dice = random.randint(1, power)
     if dice <= 4:  # Moins de chance de gagner contre le boss
         message = "Vous avez perdu contre le " + "\x1b[1;31mBoss\x1b[0m" + "."
@@ -67,7 +78,7 @@ def boss_combat(power):
     else:
         message = "Vous avez vaincu le " + "\x1b[1;31mBoss\x1b[0m" + " !"
         luck += 1
-        loot()  # Récompense après avoir tué le boss
+        loot(luck)  # Récompense après avoir tué le boss
         boss_killed = True  # Le boss a été tué
         return True
 
@@ -98,18 +109,19 @@ def move(carte, direction):
         # Lancement du combat
         win = combat(power)
         if win:
-            loot()
+            loot(luck)
         else:
             health -= 1  # Si perdu, on diminue la santé
             if health <= 0:
                 message = "Vous avez perdu toutes vos " + f"\x1b[1;35mvies\x1b[0m" + " ! Fin de la partie."
                 return carte, x, y, health
     elif carte[x, y] == health_char:
-        health += (1 + luck)
-        message = "Vous trouvez un bonus de santé ! +1 " + f"\x1b[1;35mvie\x1b[0m" + "."
+        bonus = random.randint(1, luck)
+        health += bonus
+        message = "Vous trouvez un bonus de santé ! + " + f"{bonus} \x1b[1;35mvie\x1b[0m" + "."
     elif carte[x, y] == treasure_char:
+        message = "Vous trouvez un coffre !"
         loot(luck, True)
-        message = "Vous trouvez un coffre ! +2 " + f"\x1b[1;33mpuissance\x1b[0m" + "."
     elif carte[x, y] == exit_char:
         # Condition de victoire : avoir 15 de puissance et avoir tué le boss
         if power >= 15 and boss_killed:
@@ -128,13 +140,9 @@ def move(carte, direction):
             if health <= 0:
                 message = "Vous avez perdu contre le " + "\x1b[1;31mBoss\x1b[0m" + " et perdu toutes vos " + f"\x1b[1;35mvies\x1b[0m" + " ! Fin de la partie."
                 return carte, x, y, health
-        else:
-            # Génère un nouveau boss après un combat
-            boss_x, boss_y = random.randint(0, carte.shape[0] - 1), random.randint(0, carte.shape[1] - 1)
-            while carte[boss_x, boss_y] in [exit_char, hero]:
-                boss_x, boss_y = random.randint(0, carte.shape[0] - 1), random.randint(0, carte.shape[1] - 1)
-            carte[boss_x, boss_y] = boss
-            boss_position = (boss_x, boss_y)
+        
+        # Génère un nouveau boss après un combat
+        carte, boss_position = spawn_boss(x, y)
 
     else:
         message = "Continuez à avancer !"
@@ -188,7 +196,8 @@ def jouer():
             luck = 1
             boss_killed = False  # Réinitialiser la condition du boss tué
             message = "C'est votre Baptême du Sang ! Tuez un " + "\x1b[1;31mBoss\x1b[0m" + " et devenez un vrai " + "\x1b[1;36mHéros\x1b[0m" + " !"
-            carte, boss_position = gen_map()
+            carte = gen_map()
+            carte, boss_position = spawn_boss()
             carte[0, 0] = hero
         else:
             print("Merci d'avoir joué ! À bientôt.")
