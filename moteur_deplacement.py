@@ -116,6 +116,7 @@ def move(carte, direction):
             message = "Vous avez trouvé la " + f"\x1b[1;32msortie\x1b[0m" + ", mais vous n'avez pas accompli votre objectif. Revenez quand vous le mériterez."
         else:
             message = "Vous avez trouvé la " + f"\x1b[1;32msortie\x1b[0m" + ", mais vous n'êtes pas assez puissant pour l'ouvrir. " + f"\x1b[1;33mPuissance\x1b[0m" + " requise : 15."
+        carte[carte.shape[0] - 1 - x, y] = exit_char # s'assure que l'autre sortie existe
     elif carte[x, y] == boss:
         # Si le joueur rencontre le boss, on lance le combat spécial
         win = boss_combat(power)
