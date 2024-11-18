@@ -11,49 +11,14 @@ power = 6
 
 sprite = '◊'
 
-def gen_map(lignes=6, colonnes=20, proba_ennemi=0.5, proba_sante=0.1):
-    return np.random.choice([0, '+', 1], size=(lignes, colonnes), p=[proba_ennemi, proba_sante, 1 - proba_ennemi - proba_sante]).astype(object)
+def gen_map(lignes=6, colonnes=20, proba_ennemi=0.5, proba_sante=0.01):
+    return np.random.choice([' ', '+', 'ŏ'], size=(lignes, colonnes), p=[proba_ennemi, proba_sante, 1 - proba_ennemi - proba_sante]).astype(object)
 
 carte = gen_map()
 
 carte[0, 0] = sprite
 
 print(carte)
-
-def move(carte, direction):
-    global power, health, message
-    # Localisation actuelle du joueur
-    position = np.argwhere(carte == sprite)
-    if position.size == 0:
-        print("Le joueur n'est pas présent sur la carte.")
-        return carte
-    x, y = position[0]
-
-    # Efface l'ancienne position du joueur
-    carte[x, y] = 0
-
-    # Calcul de la nouvelle position en fonction de la direction
-    if direction == 'Z':  # Haut
-        x = max(0, x - 1)
-    elif direction == 'S':  # Bas
-        x = min(carte.shape[0] - 1, x + 1)
-    elif direction == 'Q':  # Gauche
-        y = max(0, y - 1)
-    elif direction == 'D':  # Droite
-        y = min(carte.shape[1] - 1, y + 1)
-    # Place le joueur dans la nouvelle position
-    if carte[x, y] == 1:
-        win = combat(power)
-        if win:
-            loot()
-        else:
-            health -= 1
-    elif carte[x, y] == '+':
-        health += 1
-    else:
-        message = "Bienvenue dans le jeu de déplacement !"
-    carte[x, y] = sprite
-    return carte, x, y, health
 
 def loot():
     global power, message
@@ -66,12 +31,53 @@ def combat(power):
     global message
     dice = random.randint(1, power)
     if dice <= 3:
-        win = False
         message = "Perdu, gros tas."
+        return False  # Défini que le combat est perdu
     else:
-        win = True
         message = "Combat remporté !"
-    return win
+        return True  # Défini que le combat est gagné
+
+def move(carte, direction):
+    global power, health, message
+    position = np.argwhere(carte == sprite)
+    if position.size == 0:
+        print("Le joueur n'est pas présent sur la carte.")
+        return carte
+    x, y = position[0]
+
+    # Efface l'ancienne position du joueur
+    carte[x, y] = ' '
+
+    # Calcul de la nouvelle position en fonction de la direction
+    if direction == 'Z':  # Haut
+        x = max(0, x - 1)
+    elif direction == 'S':  # Bas
+        x = min(carte.shape[0] - 1, x + 1)
+    elif direction == 'Q':  # Gauche
+        y = max(0, y - 1)
+    elif direction == 'D':  # Droite
+        y = min(carte.shape[1] - 1, y + 1)
+        
+    # Gestion de la case cible
+    if carte[x, y] == 'ŏ':
+        # Lancement du combat
+        win = combat(power)
+        if win:
+            loot()
+        else:
+            health -= 1  # Si perdu, on diminue la santé
+            if health <= 0:
+                message = "Vous avez perdu toutes vos vies ! Fin de la partie."
+                return carte, x, y, health
+    elif carte[x, y] == '+':
+        health += 1
+        message = "Vous trouvez un bonus de santé ! +1 vie."
+    else:
+        message = "Bienvenue dans le jeu de déplacement !"
+        
+    # Mise à jour de la nouvelle position du joueur
+    carte[x, y] = sprite
+    return carte, x, y, health
 
 def jouer():
     global carte, health, message, power
