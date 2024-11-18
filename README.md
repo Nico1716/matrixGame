@@ -10,5 +10,5 @@ Utilisez les touches ZQSD pour vous déplacer. Les combats sont automatiques. Le
 L'objectif est d'atteindre une sortie → avec plus de 15 de puissance et après avoir battu un Boss Ŏ.
 
 ## Créateurs 
-Mouilleau Grégoire
+Mouilleau Grégoire  
 Puig Nicolas
