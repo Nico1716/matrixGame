@@ -39,12 +39,13 @@ carte[0, 0] = hero
 
 print(carte)
 
-def loot():
+def loot(luck=1):
     global power, message
-    dice = random.randint(1, 10)
-    if dice >= 3:
-        power += 1
-        message += " Vous récupérez une meilleure arme. + 1 " + f"\x1b[1;33mpuissance\x1b[0m" + " !"
+    dice = random.randint(1, 11 - luck)
+    if dice <= 3:
+        bonus = 1 + random.randint(0, luck)
+        power += bonus
+        message += " Vous récupérez une meilleure arme. + " + f"{bonus} \x1b[1;33mpuissance\x1b[0m" + " !"
 
 def combat(power):
     global message
@@ -64,6 +65,7 @@ def boss_combat(power):
         return False
     else:
         message = "Vous avez vaincu le " + "\x1b[1;31mBoss\x1b[0m" + " !"
+        luck += 1
         loot()  # Récompense après avoir tué le boss
         boss_killed = True  # Le boss a été tué
         return True
@@ -80,13 +82,13 @@ def move(carte, direction):
     carte[x, y] = ' '
 
     # Calcul de la nouvelle position en fonction de la direction
-    if direction == 'Z':  # Haut
-        x = max(0, x - 1)
-    elif direction == 'S':  # Bas
+    if direction == 'Z':  
+        x = max(0, x - 1) # Collisions de bord de carte
+    elif direction == 'S': 
         x = min(carte.shape[0] - 1, x + 1)
-    elif direction == 'Q':  # Gauche
+    elif direction == 'Q':
         y = max(0, y - 1)
-    elif direction == 'D':  # Droite
+    elif direction == 'D':
         y = min(carte.shape[1] - 1, y + 1)
         
     # Gestion de la case cible
