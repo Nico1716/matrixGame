@@ -53,7 +53,7 @@ print(carte)
 
 def loot(luck, chest=False):
     global power, message
-    dice = random.randint(1, 11 - luck)
+    dice = random.randint(1, max(1, 11 - luck)) # au cas où quelqu'un vaincrait plus de 10 boss
     if dice <= 3 or chest:
         bonus = 1 + random.randint(0, luck)
         power += bonus
@@ -158,7 +158,7 @@ def jouer():
             os.system('cls' if os.name == 'nt' else 'clear')
 
             print("Appuyez sur 'X' pour quitter le jeu.\n")
-            print(f"\x1b[1;31mPuissance\x1b[0m" + f" : {power}")
+            print(f"\x1b[1;33mPuissance\x1b[0m" + f" : {power}")
             print(f"\x1b[1;35mVie\x1b[0m" + f" : {health}")
             if boss_killed:
                 print(f"\x1b[1;31mBoss\x1b[0m vaincu ! Plus qu'à \x1b[1;32msortir\x1b[0m...")
